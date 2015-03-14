@@ -10,6 +10,7 @@
 #define __puzzle_twitterer__Charactor__
 
 #include "Drop.h"
+#include "dbIO.h"
 
 class Charactor : public cocos2d::Sprite{
 public:
@@ -19,6 +20,8 @@ public:
     CC_SYNTHESIZE(Drop::Element, _element, Element);
     CREATE_FUNC(Charactor);
     Charactor();
+    
+    bool isLiving(){return _hp > 0;}
 
 protected:
     
@@ -42,7 +45,7 @@ public:
     void attackToPlayer();
     
     void countTurn();
-    bool isAttackTurn();
+    bool isAttackTurn(){return true;}; //debug
     
     void refHpBar();
     
@@ -61,8 +64,8 @@ private:
 
 class Twitterer :public Charactor{
 public:
-    virtual bool init(std::string filename,Drop::Element element);
-    static Twitterer* create(std::string filename,Drop::Element element);
+    virtual bool init(int ID);
+    static Twitterer* create(int ID);
     Twitterer();
 
     void pushChain(int Chain);
@@ -71,6 +74,7 @@ public:
     void setExtraDamage(double extra);
     
     void calcDamage();
+    void initDamage();
     
     CC_SYNTHESIZE(int, _heal, HealPower);
     CC_SYNTHESIZE_READONLY(int, _chain, Chain);

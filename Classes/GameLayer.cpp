@@ -67,22 +67,28 @@ bool GameLayer::init()
     auto bar_frame = cocos2d::Sprite::create("hp_frame.png");
     auto hp_bar = cocos2d::Sprite::create("hp_bar.png");
     
+    hpTimer = cocos2d::ProgressTimer::create(hp_bar);
+    hpTimer->setType(cocos2d::ProgressTimer::Type::BAR);
+    hpTimer->setBarChangeRate(cocos2d::Vec2(1, 0));
+    hpTimer->setMidpoint(cocos2d::Vec2(0, 0));
+    hpTimer->setPercentage(100);
+    hpTimer->setAnchorPoint(cocos2d::Vec2::ZERO);
+    addChild(hpTimer);
+    
     bar_frame->setAnchorPoint(Vec2::ZERO);
-    hp_bar->setAnchorPoint(Vec2::ZERO);
     
     bar_frame->setPosition(Vec2(0,field->getContentSize().height+5));
-    hp_bar->setPosition(Vec2(0,field->getContentSize().height+5));
+    hpTimer->setPosition(Vec2(0,field->getContentSize().height+5));
     
     this->addChild(bar_frame);
     this->addChild(hp_bar);
     
-    targetEnemy = Enemy::create("symptte.png",Drop::Element::DARK,Enemy::enemy_pos::CENTER);
-    targetEnemy->setMaxHp(100000);
-    targetEnemy->setHP(100000);
-    targetEnemy->setAttack(1000);
-    targetEnemy->setDeffence(1000);
+    countLabel = cocos2d::Label::createWithTTF("killed symptte: 0", "fonts/Marker Felt.ttf", 20);;
+    countLabel->setAnchorPoint(Vec2(0.0f,1.0f));
+    countLabel->setPosition(cocos2d::Size(0,visibleSize.height));
+    this->addChild(countLabel);
     
-    this->addChild(targetEnemy);
+    nextEnemy();
     
     auto touchListner = EventListenerTouchOneByOne::create();
     touchListner->setSwallowTouches(true);
@@ -95,6 +101,7 @@ bool GameLayer::init()
     _eventDispatcher->addEventListenerWithSceneGraphPriority(touchListner, this);
     
     makeCharactors();
+    initPlayerStatus();
     
     return true;
 }
@@ -317,6 +324,7 @@ void GameLayer::removeDropWithAnimation(std::vector<Drop*> targetDrops,int remov
     auto removeSelf = RemoveSelf::create(true);
     
     Drop::Element element = targetDrops[0]->getElement();
+
     int size = targetDrops.size();
     
     auto calcDM = CallFuncN::create([element,size,this](Ref* obj){
@@ -367,7 +375,43 @@ void GameLayer::replaceDropWithAnimation(){
 }
 
 void GameLayer::progressTurn(){
-    targetEnemy->attackToPlayer();
+    if(targetEnemy->isLiving()){
+        if(targetEnemy->isAttackTurn()){
+            
+        _hp -= targetEnemy->getAttack();
+        if(_hp<0)_hp=0;
+            
+            if(_hp == 0){
+                std::string str = "LOSE";
+                
+                auto bonusLabel = cocos2d::Label::createWithTTF(str, "fonts/Marker Felt.ttf", 150);
+                bonusLabel->setScale(0.02f);
+                bonusLabel->setColor(cocos2d::Color3B::RED);
+                bonusLabel->setPosition(cocos2d::Director::getInstance()->getVisibleSize()/2);
+                this->addChild(bonusLabel);
+                bonusLabel->runAction(Sequence::create(DelayTime::create(2.0f),ScaleTo::create(1.0f, 1.0f),DelayTime::create(0.5f),nullptr));
+                
+                _eventDispatcher->setEnabled(false);
+            }
+            
+        }
+    }
+    
+    else {
+        std::string str = "next stage";
+        
+        auto bonusLabel = cocos2d::Label::createWithTTF(str, "fonts/Marker Felt.ttf", 120);
+        bonusLabel->setScale(0.02f);
+        bonusLabel->setColor(cocos2d::Color3B::WHITE);
+        bonusLabel->setPosition(cocos2d::Director::getInstance()->getVisibleSize()/2+cocos2d::Size(0,200));
+        this->addChild(bonusLabel);
+        bonusLabel->runAction(Sequence::create(DelayTime::create(2.0f),ScaleTo::create(1.0f, 1.0f),DelayTime::create(0.5f),FadeOut::create(0.5f),RemoveSelf::create(),nullptr));
+        
+        targetEnemy->runAction(Sequence::create(FadeTo::create(3.0f, 0),RemoveSelf::create(),CallFunc::create(CC_CALLBACK_0(GameLayer::nextEnemy,this)), nullptr));
+    }
+    
+    auto progress = cocos2d::ProgressTo::create(1.0f,_hp/static_cast<float>(_maxHp) * 100.0f);
+    hpTimer->runAction(progress);
 }
 
 void GameLayer::calcDamage(std::vector<Drop*> drops){
@@ -390,6 +434,12 @@ void GameLayer::calcDamage(Drop::Element element,int size){
     double damage;
     
     damage = size/3.0;
+    
+    if(element == Drop::Element::HEAL){
+        _hp += damage*_healPower;
+        if(_hp>_maxHp)_hp = _maxHp;
+    }
+    
     for(auto &member: twitterers){
         if(element==member->getElement()){
             member->pushDamage(damage);
@@ -414,12 +464,8 @@ void GameLayer::changeDrop(Drop* subject,Drop* target){
 
 void GameLayer::makeCharactors(){
     for(int i=0;i<5;i++){
-        twitterers.push_back(Twitterer::create("symptte.png",Drop::Element::DARK));
+        twitterers.push_back(Twitterer::create(i+1));
         twitterers[i]->setPosition(Director::getInstance()->getVisibleSize().width/5*i,field->getContentSize().height+105);
-        twitterers[i]->setAttack(100);
-        twitterers[i]->setHealPower(300);
-        twitterers[i]->setHP(1000);
-        
         this->addChild(twitterers[i]);
     }
 }
@@ -441,6 +487,7 @@ void GameLayer::attack(){
     bonusLabel->setPosition(cocos2d::Director::getInstance()->getVisibleSize()/2);
     this->addChild(bonusLabel);
     bonusLabel->runAction(Sequence::create(ScaleTo::create(1.0f, 1.0f),DelayTime::create(0.5f),FadeOut::create(0.5f),RemoveSelf::create(),nullptr));
+    
 }
 
 void GameLayer::initPlayerStatus(){
@@ -452,5 +499,19 @@ void GameLayer::initPlayerStatus(){
         _healPower += member->getHealPower();
     }
     
-    
+    _hp = _maxHp;
 }
+
+void GameLayer::nextEnemy(){
+    countKillSymptte++;
+    countLabel->setString("killed symptte: "+std::to_string(countKillSymptte));
+    
+    targetEnemy = Enemy::create("symptte.png",Drop::Element::DARK,Enemy::enemy_pos::CENTER);
+    targetEnemy->setMaxHp(100000);
+    targetEnemy->setHP(100000);
+    targetEnemy->setAttack(1000 * countKillSymptte + 1000);
+    targetEnemy->setDeffence(1000);
+    
+    this->addChild(targetEnemy);
+}
+

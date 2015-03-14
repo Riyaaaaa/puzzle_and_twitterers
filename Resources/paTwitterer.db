@@ -1,0 +1,9 @@
+CREATE TABLE twitterer (id INTEGER PRIMARY KEY AUTOINCREMENT, Element INTEGER, Name TEXT, Attack INTEGER, hp INTEGER, heal INTEGER);
+
+INSERT INTO twitterer (id,Element,Name,Attack,hp,heal) VALUES (1,4,'symptte',100,2000,100);
+INSERT INTO twitterer (id,Element,Name,Attack,hp,heal) VALUES (2,3,'hal',320,670,80);
+INSERT INTO twitterer (id,Element,Name,Attack,hp,heal) VALUES (3,1,'riya',220,1200,200);
+INSERT INTO twitterer (id,Element,Name,Attack,hp,heal) VALUES (4,2,'gonzabu',120,1000,310);
+INSERT INTO twitterer (id,Element,Name,Attack,hp,heal) VALUES (5,5,'soshik',200,1300,200);
+
+

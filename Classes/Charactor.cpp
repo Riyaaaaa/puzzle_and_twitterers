@@ -7,6 +7,7 @@
 //
 
 #include "Charactor.h"
+#include "sqlite3.h"
 
 Charactor::Charactor(){
     
@@ -39,18 +40,20 @@ void Twitterer::pushChain(int chain){
 unsigned int Twitterer::getDamage(){
     auto moveby = cocos2d::MoveBy::create(0.5f, cocos2d::Vec2(0,20.0f));
     auto moveFrom = cocos2d::MoveBy::create(0.5f, cocos2d::Vec2(0,-20.0f));
-    this->runAction(cocos2d::Sequence::create(moveby,moveFrom,nullptr));
-    return _damage*_attack;
+    auto initd = cocos2d::CallFunc::create(CC_CALLBACK_0(Twitterer::initDamage, this));
+    if(_damage!=0)this->runAction(cocos2d::Sequence::create(moveby,moveFrom,initd,nullptr));
+    int damage = _damage*_attack;
+    return damage;
 }
 
 void Twitterer::setExtraDamage(double extra){
     _damage *= extra;
 }
 
-Twitterer* Twitterer::create(std::string filename,Drop::Element element){
+Twitterer* Twitterer::create(int ID){
     Twitterer* pRet = new Twitterer;
     
-    if(pRet && pRet->init(filename,element)){
+    if(pRet && pRet->init(ID)){
         pRet->autorelease();
     }
     else{
@@ -61,7 +64,13 @@ Twitterer* Twitterer::create(std::string filename,Drop::Element element){
     return pRet;
 }
 
-bool Twitterer::init(std::string filename,Drop::Element element){
+bool Twitterer::init(int ID){
+    dbIO* db = dbIO::getInstance();
+    int attack = db->getAttack(ID);
+    int hp = db->getHp(ID);
+    int heal = db->getHeal(ID);
+    std::string filename = db->getName(ID) + ".png";
+    Drop::Element element = static_cast<Drop::Element>(db->getElement(ID));
     
     std::string frame_path = "element_frame" + std::to_string(element) + ".png";
     
@@ -76,6 +85,9 @@ bool Twitterer::init(std::string filename,Drop::Element element){
     this->addChild(frame);
     
     _element = element;
+    _attack = attack;
+    _maxHp = _hp = hp;
+    _heal = heal;
     
     return true;
 }
@@ -87,6 +99,12 @@ void Twitterer::calcDamage(){
     
     damageLabel->setString(std::to_string(_damage));
     damageLabel->runAction(seq);
+}
+
+void Twitterer::initDamage(){
+    _damage = 0;
+    _chain = 0;
+    damageLabel->setVisible(false);
 }
 
 bool Enemy::init(std::string filename,Drop::Element element,enemy_pos pos){
@@ -107,7 +125,7 @@ bool Enemy::init(std::string filename,Drop::Element element,enemy_pos pos){
     auto hp_frame = cocos2d::Sprite::create("hp_frame.png");
     hp_frame->setScale(getContentSize().width /hp_frame->getContentSize().width);
     hp_frame->setAnchorPoint(cocos2d::Vec2(0.0f,1.0f));
-    addChild(hp_frame);
+    addChild(hp_frame,3);
     
     hpTimer = cocos2d::ProgressTimer::create(_hpBar);
     hpTimer->setType(cocos2d::ProgressTimer::Type::BAR);

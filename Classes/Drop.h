@@ -20,7 +20,7 @@ public:
     enum Element{
         FIRE=1,
         WATER,
-        THUNDER,
+        HOLY,
         DARK,
         TREE,
         HEAL,

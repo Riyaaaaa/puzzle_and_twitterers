@@ -5,6 +5,7 @@
 #include "Drop.h"
 #include "Charactor.h"
 #include "StdParameters.h"
+#include "dbIO.h"
 
 template<typename T>
 using vector2 = std::vector<std::vector<T>>;
@@ -49,6 +50,8 @@ private:
     int _maxHp;
     int _healPower;
     
+    int countKillSymptte=-1;
+    
     void puzzleSeqence();
     void removeDropWithAnimation(vector2<Drop*>);
     void removeDropWithAnimation(std::vector<Drop*>,int,int);
@@ -70,10 +73,16 @@ private:
     virtual void onTouchCancelled(cocos2d::Touch* touch,cocos2d::Event* unused_event);
     
     void makeCharactors(); //debug
-    
     void initPlayerStatus();
     
+    void refHpBar();
+    
+    void nextEnemy();
+    
     Enemy* targetEnemy;
+    
+    cocos2d::ProgressTimer* hpTimer;
+    cocos2d::Label* countLabel;
 };
 
 #endif // __HELLOWORLD_SCENE_H__
