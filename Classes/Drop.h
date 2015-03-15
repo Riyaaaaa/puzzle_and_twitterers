@@ -36,15 +36,15 @@ public:
     virtual bool init(Element type);
     
     void setFiledWithPosIndex(posIndex pos);
-    void setFiledWithPosIndexAndDelay(posIndex pos,int delay);
-    static int generateTag(posIndex pos){return (int)pos.y*WIDTH_DROP_NUM+(int)pos.x;}
+    void setFiledWithPosIndexAndDelay(posIndex pos,int delay); //with Animation
+    static int generateTag(posIndex pos){return (int)pos.y*WIDTH_DROP_NUM+(int)pos.x;} //posIndex to integer
     
-    void kill(){valid=false;};
-    bool is_valid(){return valid;}
+    void kill(){_valid=false;};
+    bool is_valid(){return _valid;}
     
     
 private:
-    bool valid=true;
+    bool _valid=true;
 };
 
 #endif /* defined(__puzzle_twitterer__Drop__) */

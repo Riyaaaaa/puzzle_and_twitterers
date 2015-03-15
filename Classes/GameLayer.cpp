@@ -221,8 +221,8 @@ void GameLayer::puzzleSeqence(){
     auto fall = CallFunc::create(CC_CALLBACK_0(GameLayer::fallDropWithAnimation, this));
     auto replace = CallFunc::create(CC_CALLBACK_0(GameLayer::replaceDropWithAnimation, this));
     auto recursive = CallFunc::create(CC_CALLBACK_0(GameLayer::puzzleSeqence, this));
-    auto delay1 = DelayTime::create(removeList.size()*REMOVE_DELAY);
-    auto delay2 = DelayTime::create(REMOVE_DELAY);
+    auto delay1 = DelayTime::create(removeList.size()*ACTION_DELAY);
+    auto delay2 = DelayTime::create(ACTION_DELAY);
     
     removeDropWithAnimation(removeList);
     this->runAction(Sequence::create(delay1, fall, delay2, replace, delay2->clone(), recursive,  nullptr));
@@ -318,9 +318,9 @@ void GameLayer::removeDropWithAnimation(vector2<Drop*> removeList){
 }
 
 void GameLayer::removeDropWithAnimation(std::vector<Drop*> targetDrops,int removeNo,int maxNo){
-    auto delay1 = DelayTime::create(REMOVE_DELAY*removeNo);
-    auto fade = FadeTo::create(REMOVE_DELAY, 0);
-    auto delay2 = DelayTime::create(REMOVE_DELAY*(maxNo-removeNo));
+    auto delay1 = DelayTime::create(ACTION_DELAY*removeNo);
+    auto fade = FadeTo::create(ACTION_DELAY, 0);
+    auto delay2 = DelayTime::create(ACTION_DELAY*(maxNo-removeNo));
     auto removeSelf = RemoveSelf::create(true);
     
     Drop::Element element = targetDrops[0]->getElement();
@@ -331,7 +331,7 @@ void GameLayer::removeDropWithAnimation(std::vector<Drop*> targetDrops,int remov
         this->calcDamage(element,size);
     });
     
-    this->runAction(Sequence::create(delay1, DelayTime::create(REMOVE_DELAY), calcDM, nullptr));
+    this->runAction(Sequence::create(delay1, DelayTime::create(ACTION_DELAY), calcDM, nullptr));
     
     for(auto ptr: targetDrops){
         ptr->kill();
@@ -348,7 +348,7 @@ void GameLayer::fallDropWithAnimation(){
             targetDrop = getDropByPosIndex(posIndex(j,i));
             if(targetDrop!=nullptr && targetDrop->is_valid()){
                 targetDrop->setFallToTargetY(targetY);
-                targetDrop->setFiledWithPosIndexAndDelay(posIndex(j,targetY), REMOVE_DELAY);
+                targetDrop->setFiledWithPosIndexAndDelay(posIndex(j,targetY), ACTION_DELAY);
                 targetY++;
             }
         }

@@ -24,9 +24,6 @@ public:
     bool isLiving(){return _hp > 0;}
 
 protected:
-    
-
-
 };
 
 
@@ -66,9 +63,9 @@ class Twitterer :public Charactor{
 public:
     virtual bool init(int ID);
     static Twitterer* create(int ID);
-    Twitterer();
 
     void pushChain(int Chain);
+    
     void pushDamage(double damage);
     unsigned int getDamage();
     void setExtraDamage(double extra);
@@ -79,6 +76,8 @@ public:
     CC_SYNTHESIZE(int, _heal, HealPower);
     CC_SYNTHESIZE_READONLY(int, _chain, Chain);
 private:
+    Twitterer();
+    
     cocos2d::Label* damageLabel=nullptr;
     unsigned int _damage=0;
 };
